@@ -6,14 +6,16 @@ import "runtime"
 func ArchitectureBitSizeMaxSequence() (maxFiboncciSequence int) {
 	arch := runtime.GOARCH
 
-	// Determine if it's 32-bit or 64-bit
 	switch arch {
+	// 64-bit
 	case "amd64", "arm64", "ppc64", "ppc64le", "mips64", "mips64le", "s390x", "riscv64":
-		maxFiboncciSequence = 93 // 64-bit
+		maxFiboncciSequence = 93
+	// 32-bit
 	case "386", "arm", "mips", "mipsle":
-		maxFiboncciSequence = 47 // 32-bit
+		maxFiboncciSequence = 47
+	// Default to 32-bit
 	default:
-		maxFiboncciSequence = 47 // Default to 32-bit
+		maxFiboncciSequence = 47
 	}
 
 	return maxFiboncciSequence
