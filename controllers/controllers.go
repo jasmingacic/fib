@@ -41,7 +41,7 @@ func GetFibonacci(c *gin.Context) {
 	}
 
 	maxPossibleFibonacci := utils.ArchitectureBitSizeMaxSequence()
-	// Check if 'n' will overflow the maximum Fibonacci sequence length for the current architecture
+	// Check if 'n' exceeds the maximum Fibonacci sequence length for the current architecture
 	if n > maxPossibleFibonacci {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("Parameter 'n' exceeds maximum Fibonacci sequence length (%d) for the current architecture", maxPossibleFibonacci)})
 		return
