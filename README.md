@@ -23,9 +23,15 @@ If you want to run the application locally without Docker, navigate to the root 
 go run main.go
 ```
 
+By default, the server runs on port 8080, but you can specify a different port by running:
+
+```bash
+go run main.go -port=9090
+```
+
 This will start the web server on port 8080 by default. You can then access the service locally.
 
-2. Run with Docker
+1. Run with Docker
 To run the application inside a Docker container, follow these steps:
 
 Build the Docker image by running:
@@ -74,6 +80,18 @@ You should get a JSON response with the Fibonacci sequence of length 5:
 ```
 
 Here, /api/fibonacci/5 is the endpoint where 5 is the length of the Fibonacci sequence requested.
+
+## Error handling
+
+The API will respond with an error message and status code 400 (Bad Request) if:
+
+* The parameter n is missing.
+
+* The parameter n is not a valid integer.
+
+* The parameter n is negative.
+
+* The parameter n exceeds the maximum Fibonacci sequence length allowed for the current architecture.
 
 ## Limitations
 
@@ -126,4 +144,3 @@ spec:
       port: 8080
       targetPort: 8080
 ```
-
