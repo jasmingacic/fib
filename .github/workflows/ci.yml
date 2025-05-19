@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-  build:
+  release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
@@ -61,15 +61,71 @@ jobs:
       - name: Run tests
         run: go test ./...
 
+      - name: Build Linux binary
+        run: GOOS=linux GOARCH=amd64 go build -o fib-linux-amd64 main.go
+
+      - name: Build macOS binary
+        run: GOOS=darwin GOARCH=amd64 go build -o fib-darwin-amd64 main.go
+
+      - name: Build Windows binary
+        run: GOOS=windows GOARCH=amd64 go build -o fib-windows-amd64.exe main.go
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./fib-linux-amd64
+          asset_name: fib-linux-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload macOS binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./fib-darwin-amd64
+          asset_name: fib-darwin-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./fib-windows-amd64.exe
+          asset_name: fib-windows-amd64.exe
+          asset_content_type: application/octet-stream
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
-        run: docker build -t fib .
+        run: |
+          TAG=${GITHUB_REF##refs/tags/}
+          SEMVER_TAG=${TAG#v}
+          docker build -t ghcr.io/${{ github.repository_owner }}/fib:${SEMVER_TAG} .
 
-      # Uncomment below to push the image on tag build
-      # - name: Log in to Docker Hub
-      #   uses: docker/login-action@v2
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
-
-      # - name: Push Docker image
-      #   run: docker push your-dockerhub-username/fib:latest
+      - name: Push Docker image
+        run: |
+          TAG=${GITHUB_REF##refs/tags/}
+          SEMVER_TAG=${TAG#v}
+          docker push ghcr.io/${{ github.repository_owner }}/fib:${SEMVER_TAG}
